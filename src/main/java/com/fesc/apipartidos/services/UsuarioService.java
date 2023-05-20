@@ -1,8 +1,16 @@
 package com.fesc.apipartidos.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import com.fesc.apipartidos.data.entidades.PartidoEntity;
+import com.fesc.apipartidos.data.repositorios.IPartidoRepository;
+import com.fesc.apipartidos.shared.PartidoDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +30,9 @@ public class UsuarioService implements IUsuarioService {
 
     @Autowired
     BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    IPartidoRepository iPartidoRepository;
 
     @Override
     public UsuarioDto crearUsuario(UsuarioDto usuarioCrearDto) {
@@ -61,4 +72,39 @@ public class UsuarioService implements IUsuarioService {
     
     }
 
+    @Override
+    public List<PartidoDto> verMisPartidos(String username) {
+
+        UsuarioEntity usuarioEntity = iUsuarioRepository.findByUsername(username);
+
+        List<PartidoEntity> partidoEntityList = iPartidoRepository.findByUsuarioEntityOrderByCreadoDesc(usuarioEntity);
+
+        List<PartidoDto> partidoDtoList = new ArrayList<>();
+
+        for (PartidoEntity partidoEntity : partidoEntityList){
+
+            PartidoDto partidoDto = modelMapper.map(partidoEntity, PartidoDto.class);
+            partidoDtoList.add(partidoDto);
+
+        }
+
+        return partidoDtoList;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        UsuarioEntity usuarioEntity = iUsuarioRepository.findByUsername(username);
+
+        if(usuarioEntity == null){
+
+            throw new UsernameNotFoundException(username);
+
+        }
+
+        User usuario = new User(usuarioEntity.getUsername(), usuarioEntity.getPasswordEncriptada(), new ArrayList<>());
+
+        return usuario;
+
+    }
 }

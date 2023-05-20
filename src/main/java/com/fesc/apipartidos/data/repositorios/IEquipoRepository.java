@@ -7,4 +7,5 @@ import com.fesc.apipartidos.data.entidades.EquipoEntity;
 public interface IEquipoRepository extends CrudRepository<EquipoEntity, Long>{
     
     EquipoEntity findById(long id);
+
 }
